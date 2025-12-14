@@ -1,49 +1,36 @@
-# 🤖 Telegram Quiz Bot
+# Telegram Quiz Bot
 
-A pure Telegram bot that creates engaging quizzes - no web interface needed!
+A pure Telegram quiz bot with multiple topics and instant feedback.
 
-## 🚀 Features
+## Features
 
-- **Interactive Quizzes**: Space, History, Science, Geography
-- **Real-time Feedback**: Instant correct/incorrect answers with explanations
-- **Score Tracking**: See your results at the end
-- **Easy Commands**: Simple slash commands and inline buttons
-- **No Web Interface**: Works entirely within Telegram
+- 🎮 Multiple quiz topics (Space, History, Science, Geography)
+- ✅ Instant feedback with explanations
+- 📊 Real-time scoring
+- 🔄 Interactive buttons
+- 📱 Clean, user-friendly interface
 
-## 📋 Commands
+## Setup
 
-- `/start` - Main menu with quick access buttons
-- `quiz space` - Space exploration quiz
-- `quiz history` - History quiz
-- `quiz science` - Science quiz
-- `quiz geography` - Geography quiz
-- `topics` - See all available topics
-- `help` - Get help and usage tips
+1. Clone this repository
+2. Install dependencies: `npm install`
+3. Copy `.env.example` to `.env`
+4. Add your Telegram bot token to `.env`
+5. Run: `npm start`
 
-## 🛠️ Tech Stack
+## Environment Variables
 
-- **Node.js** with Express
-- **Telegram Bot API**
-- **Axios** for HTTP requests
-- **In-memory session storage**
+- `BOT_TOKEN`: Your Telegram bot token
+- `TELEGRAM_WEBHOOK_SECRET`: Webhook secret (optional)
+- `PORT`: Server port (default: 3000)
 
-## 📦 Deployment to Koyeb
+## Commands
 
-### 1. Get Bot Token
-1. Talk to [@BotFather](https://t.me/botfather) on Telegram
-2. Create a new bot: `/newbot`
-3. Copy your bot token
+- `/start` - Show main menu
+- `quiz [topic]` - Start quiz for specific topic
+- `topics` - Show available topics
+- `help` - Show help message
 
-### 2. Deploy to Koyeb
-1. Fork this repository from [phoenix1185/telegram-quiz-bot](https://github.com/phoenix1185/telegram-quiz-bot)
-2. Go to [Koyeb](https://koyeb.com)
-3. Create new app → GitHub
-4. Select your forked repository
-5. Set environment variable:
-   - `BOT_TOKEN`: Your bot token from BotFather
-6. Deploy
+## Deployment
 
-### 3. Set Webhook
-After deployment, your bot will be automatically live at your Koyeb URL!
-
-## 🔧 Local Development
+This bot is designed to run on Koyeb, Heroku, or any Node.js hosting platform.

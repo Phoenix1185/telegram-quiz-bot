@@ -1,21 +1,29 @@
 {
   "name": "telegram-quiz-bot",
   "version": "1.0.0",
-  "description": "Pure Telegram Quiz Bot - No Web Interface",
+  "description": "A pure Telegram quiz bot",
   "main": "server.js",
+  "type": "commonjs",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "node server.js",
+    "build": "echo 'No build step required'",
+    "test": "echo 'No tests specified'"
+  },
+  "keywords": ["telegram", "bot", "quiz"],
+  "author": "phoenix1185",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "axios": "^1.6.0",
-    "dotenv": "^16.3.1"
+    "axios": "^1.6.2",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2"
   },
-  "devDependencies": {
-    "nodemon": "^3.0.1"
-  },
-  "keywords": ["telegram", "bot", "quiz", "education"],
-  "author": "Your Name",
-  "license": "MIT"
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/phoenix1185/telegram-quiz-bot.git"
+  }
 }

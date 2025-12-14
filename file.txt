@@ -1,0 +1,25 @@
+
+Or use the inline buttons for quick access!
+
+## 🎮 How It Works
+
+1. User sends a command or clicks a button
+2. Bot presents quiz questions with multiple choice
+3. User clicks an answer
+4. Bot shows if correct/incorrect with explanation
+5. Continue to next question or see final score
+6. Play again with any topic
+
+## 🤝 Contributing
+
+1. Fork the repository from [phoenix1185/telegram-quiz-bot](https://github.com/phoenix1185/telegram-quiz-bot)
+2. Add more quiz questions to `quizDatabase`
+3. Submit a pull request
+
+## 📄 License
+
+MIT License
+
+---
+
+Made with ❤️ by [phoenix1185](https://github.com/phoenix1185) for Telegram users everywhere!

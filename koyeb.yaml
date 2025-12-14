@@ -1,0 +1,19 @@
+name: telegram-quiz-bot
+services:
+- name: bot
+  source:
+    git:
+      url: https://github.com/phoenix1185/telegram-quiz-bot.git
+      branch: main
+  env:
+  - key: BOT_TOKEN
+    value: "{{ .BOT_TOKEN }}"
+  ports:
+  - port: 3000
+    protocol: http
+  routes:
+  - path: /webhook
+  health_check:
+    http:
+      path: /health
+      port: 3000

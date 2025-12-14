@@ -1,0 +1,497 @@
+import { useState, useEffect, useRef } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { User, Settings, Check, X, Upload, Download, Plus, ArrowRight, Home, Search, Menu, Bell, Calendar, Star } from 'lucide-react';
+import { generateQuizQuestion } from '../utils/aiQuizGenerator';
+
+interface Message {
+  id: string;
+  text: string;
+  sender: 'user' | 'bot';
+  timestamp: Date;
+  type: 'text' | 'photo' | 'document' | 'audio' | 'video' | 'animation' | 'voice';
+  mediaUrl?: string;
+  replyMarkup?: any;
+  isTyping?: boolean;
+}
+
+interface TelegramChatProps {
+  botToken: string;
+  webhookUrl: string;
+}
+
+export default function TelegramChat({ botToken, webhookUrl }: TelegramChatProps) {
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: '1',
+      text: '🤖 *Welcome to AI Quiz Generator!* 🎯\n\nI can create unique quiz questions on any topic using multiple AI engines. I support:\n\n📝 Text messages\n🖼️ Images & photos\n📄 Documents\n🎵 Audio files\n🎬 Videos\n🎭 GIFs\n🎤 Voice messages\n⌨️ Inline keyboards\n\n*Try these commands:*\n• `quiz space exploration` 🚀\n• `topics` 📚\n• `engines` 🤖\n• `photo` 📸\n• `inline` ⌨️',
+      sender: 'bot',
+      timestamp: new Date(),
+      type: 'text'
+    }
+  ]);
+  const [inputText, setInputText] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const createInlineKeyboard = (type: string) => {
+    switch (type) {
+      case 'quiz':
+        return {
+          inline_keyboard: [
+            [
+              { text: '🎯 Easy', callback_data: 'quiz_easy' },
+              { text: '🔥 Medium', callback_data: 'quiz_medium' },
+              { text: '💀 Hard', callback_data: 'quiz_hard' }
+            ],
+            [
+              { text: '🤖 GPT-4', callback_data: 'engine_gpt4' },
+              { text: '🧠 Claude', callback_data: 'engine_claude' },
+              { text: '✨ Gemini', callback_data: 'engine_gemini' }
+            ],
+            [
+              { text: '🎲 Random Topic', callback_data: 'random_topic' },
+              { text: '📊 My Score', callback_data: 'my_score' }
+            ]
+          ]
+        };
+      case 'topics':
+        return {
+          inline_keyboard: [
+            ['🔬 Science', '📜 History', '💻 Technology'],
+            ['🧮 Mathematics', '📚 Literature', '🌍 Geography'],
+            ['🎨 Art', '🎵 Music', '🤔 Philosophy'],
+            ['🧠 Psychology', '💰 Economics', '🏛️ Politics'],
+            ['🧬 Biology', '⚗️ Chemistry', '⚛️ Physics'],
+            ['🤖 AI', '🚀 Space', '🌡️ Climate']
+          ]
+        };
+      case 'media':
+        return {
+          inline_keyboard: [
+            [
+              { text: '📸 Send Photo', callback_data: 'send_photo' },
+              { text: '📄 Send Document', callback_data: 'send_document' }
+            ],
+            [
+              { text: '🎵 Send Audio', callback_data: 'send_audio' },
+              { text: '🎬 Send Video', callback_data: 'send_video' }
+            ],
+            [
+              { text: '🎭 Send GIF', callback_data: 'send_gif' },
+              { text: '🎤 Send Voice', callback_data: 'send_voice' }
+            ]
+          ]
+        };
+      default:
+        return {
+          inline_keyboard: [
+            [
+              { text: '🎮 Start Quiz', callback_data: 'start_quiz' },
+              { text: '📚 Topics', callback_data: 'show_topics' }
+            ],
+            [
+              { text: '🤖 AI Engines', callback_data: 'show_engines' },
+              { text: '📊 Score', callback_data: 'show_score' }
+            ],
+            [
+              { text: '🎨 Media Demo', callback_data: 'media_demo' },
+              { text: '⚙️ Settings', callback_data: 'settings' }
+            ]
+          ]
+        };
+    }
+  };
+
+  const processCommand = async (command: string) => {
+    const cmd = command.toLowerCase().trim();
+    
+    // Handle quiz generation with inline keyboard
+    if (cmd.startsWith('quiz')) {
+      const parts = cmd.split(' ');
+      const topic = parts.slice(1).join(' ') || 'general knowledge';
+      
+      setIsTyping(true);
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      const question = await generateQuizQuestion(topic);
+      
+      setMessages(prev => [...prev, {
+        id: Date.now().toString(),
+        text: `🎯 *${question.category.toUpperCase()} Quiz*\n\n${question.question}\n\n${question.options.map((opt, i) => `${i + 1}. ${opt}`).join('\n')}\n\n_🤖 Generated by ${question.engine} in ${question.generationTime}ms_`,
+        sender: 'bot',
+        timestamp: new Date(),
+        type: 'text',
+        replyMarkup: createInlineKeyboard('quiz')
+      }]);
+      
+      setIsTyping(false);
+      return;
+    }
+
+    // Handle photo command
+    if (cmd === 'photo' || cmd === 'image') {
+      setIsTyping(true);
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      setMessages(prev => [...prev, {
+        id: Date.now().toString(),
+        text: '📸 *Here\'s a beautiful quiz-related image!*',
+        sender: 'bot',
+        timestamp: new Date(),
+        type: 'photo',
+        mediaUrl: 'https://picsum.photos/seed/quizbot/400/300.jpg',
+        replyMarkup: {
+          inline_keyboard: [
+            [
+              { text: '👍 Like', callback_data: 'like_photo' },
+              { text: '💾 Save', callback_data: 'save_photo' },
+              { text: '🔄 Another', callback_data: 'another_photo' }
+            ]
+          ]
+        }
+      }]);
+      
+      setIsTyping(false);
+      return;
+    }
+
+    // Handle inline keyboard demo
+    if (cmd === 'inline' || cmd === 'buttons') {
+      setIsTyping(true);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      setMessages(prev => [...prev, {
+        id: Date.now().toString(),
+        text: '⌨️ *Interactive Inline Keyboard Demo*\n\nTry clicking the buttons below!',
+        sender: 'bot',
+        timestamp: new Date(),
+        type: 'text',
+        replyMarkup: createInlineKeyboard('default')
+      }]);
+      
+      setIsTyping(false);
+      return;
+    }
+
+    // Handle media demo
+    if (cmd === 'media') {
+      setIsTyping(true);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      setMessages(prev => [...prev, {
+        id: Date.now().toString(),
+        text: '🎨 *Media Features Demo*\n\nI can send and receive all types of media!',
+        sender: 'bot',
+        timestamp: new Date(),
+        type: 'text',
+        replyMarkup: createInlineKeyboard('media')
+      }]);
+      
+      setIsTyping(false);
+      return;
+    }
+
+    // Handle other commands
+    const responses: { [key: string]: string } = {
+      'topics': '📚 *Available Topics*\n\n🔬 Science • 📜 History • 💻 Technology\n🧮 Mathematics • 📚 Literature • 🌍 Geography\n🎨 Art • 🎵 Music • 🤔 Philosophy\n🧠 Psychology • 💰 Economics • 🏛️ Politics\n🧬 Biology • ⚗️ Chemistry • ⚛️ Physics\n🤖 AI • 🚀 Space • 🌡️ Climate Change\n💡 Usage: `quiz [topic]`',
+      'engines': '🤖 *AI Engines Available*\n\n• **GPT-4** 🔬: Analytical reasoning, best for technical topics\n• **Claude** 🧠: Thoughtful analysis, best for humanities\n• **Gemini** ✨: Creative scenarios, best for innovative topics\n\n💡 Usage: `quiz [topic] [difficulty] [engine]`',
+      'score': '📊 *Your Score*\n\n🎯 Total Questions: 0\n✅ Correct Answers: 0\n📈 Accuracy: 0%\n🏆 Best Streak: 0\n\nStart a quiz to begin tracking! 🚀',
+      'help': '🆘 *Help & Commands*\n\n📝 *Quiz Commands:*\n• `quiz [topic]` - Start a quiz\n• `quiz [topic] [difficulty]` - With difficulty\n• `quiz [topic] [difficulty] [engine]` - With AI engine\n\n🎨 *Media Commands:*\n• `photo` - Send a demo image\n• `media` - Show media features\n• `inline` - Show inline buttons\n\n📊 *Info Commands:*\n• `topics` - List available topics\n• `engines` - Show AI engines\n• `score` - Check your score\n• `help` - Show this message\n\n🎮 *Fun Features:*\n• Send any emoji! 😊🎉🚀\n• Send stickers, GIFs, photos\n• Use inline keyboards\n• Voice messages supported',
+      'start': '🚀 *Welcome Back!* 🎯\n\nReady for another quiz? I\'ve missed you! 😊\n\nTry: `quiz space exploration` or `topics` 📚',
+      'hello': '👋 *Hello there!* 😊\n\nReady to test your knowledge? 🧠✨\n\nTry: `quiz` to start or `help` for commands! 📚',
+      'hi': '👋 *Hi!* 😄\n\nLet\'s learn something new today! 🎓\n\nTry: `quiz science` or `topics` 📖'
+    };
+
+    // Add emoji responses
+    const emojiResponses: { [key: string]: string } = {
+      '👍': '👍 *Thanks!* 😊 Glad you like it!',
+      '❤️': '❤️ *Love you too!* 💕 Happy quizzing!',
+      '🎉': '🎉 *Yay!* 🎊 Let\'s celebrate with a quiz!',
+      '🤖': '🤖 *Beep boop!* 🤖 I\'m your AI quiz bot!',
+      '🧠': '🧠 *Brain power!* 💪 Ready for a mental workout?',
+      '📚': '📚 *Book lover!* 📖 Try `quiz literature`!',
+      '🚀': '🚀 *To infinity!* 🌌 Try `quiz space exploration`!',
+      '🎯': '🎯 *Bullseye!* 🎯 Ready for a challenge?',
+      '🏆': '🏆 *Champion!* 🥇 Let\'s test your skills!',
+      '💯': '💯 *Perfect!* ✨ You\'re ready for expert level!',
+      '🔥': '🔥 *On fire!* 💪 Try a hard quiz!',
+      '⭐': '⭐ *Star student!* 🌟 You\'re amazing!',
+      '🎨': '🎨 *Creative!* 🎭 Try an art quiz!',
+      '🎵': '🎵 *Music lover!* 🎶 Try a music quiz!',
+      '🌍': '🌍 *World explorer!* 🗺️ Try a geography quiz!'
+    };
+
+    let response = responses[cmd] || emojiResponses[cmd] || 
+      '❓ *Unknown command* 🤔\n\nTry `help` to see all available commands! 📚\n\nOr send an emoji! 😊🎉🚀';
+
+    // Add inline keyboard to most responses
+    let replyMarkup = null;
+    if (cmd === 'topics') {
+      replyMarkup = createInlineKeyboard('topics');
+    } else if (!emojiResponses[cmd]) {
+      replyMarkup = createInlineKeyboard('default');
+    }
+
+    setMessages(prev => [...prev, {
+      id: Date.now().toString(),
+      text: response,
+      sender: 'bot',
+      timestamp: new Date(),
+      type: 'text',
+      replyMarkup
+    }]);
+  };
+
+  const handleSendMessage = async () => {
+    if (!inputText.trim()) return;
+
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      text: inputText,
+      sender: 'user',
+      timestamp: new Date(),
+      type: 'text'
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    const messageToSend = inputText;
+    setInputText('');
+
+    // Process the command
+    await processCommand(messageToSend);
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
+  const handleMediaClick = (type: string) => {
+    const mediaCommands: { [key: string]: string } = {
+      'photo': 'photo',
+      'document': 'document',
+      'audio': 'audio',
+      'video': 'video',
+      'animation': 'gif',
+      'voice': 'voice'
+    };
+    
+    setInputText(mediaCommands[type] || '');
+  };
+
+  const renderMessage = (message: Message) => {
+    const isUser = message.sender === 'user';
+    
+    return (
+      <div
+        key={message.id}
+        className={`flex gap-2 ${isUser ? 'justify-end' : 'justify-start'}`}
+      >
+        {!isUser && (
+          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <Settings className="w-4 h-4 text-blue-600" />
+          </div>
+        )}
+        
+        <div className="max-w-[70%] space-y-2">
+          <div
+            className={`rounded-2xl px-4 py-2 ${
+              isUser
+                ? 'bg-blue-500 text-white'
+                : 'bg-gray-100 text-gray-900'
+            }`}
+          >
+            {message.type === 'photo' && message.mediaUrl && (
+              <div className="mb-2">
+                <img 
+                  src={message.mediaUrl} 
+                  alt="Quiz image" 
+                  className="rounded-lg max-w-full h-auto"
+                />
+              </div>
+            )}
+            
+            {message.type === 'document' && (
+              <div className="flex items-center gap-2 mb-2">
+                <Download className="w-5 h-5" />
+                <span>Document</span>
+              </div>
+            )}
+            
+            {message.type === 'audio' && (
+              <div className="flex items-center gap-2 mb-2">
+                <Star className="w-5 h-5" />
+                <span>Audio File</span>
+              </div>
+            )}
+            
+            {message.type === 'video' && (
+              <div className="flex items-center gap-2 mb-2">
+                <Upload className="w-5 h-5" />
+                <span>Video File</span>
+              </div>
+            )}
+            
+            {message.type === 'animation' && (
+              <div className="flex items-center gap-2 mb-2">
+                <Star className="w-5 h-5" />
+                <span>GIF Animation</span>
+              </div>
+            )}
+            
+            {message.type === 'voice' && (
+              <div className="flex items-center gap-2 mb-2">
+                <Bell className="w-5 h-5" />
+                <span>Voice Message</span>
+              </div>
+            )}
+            
+            <p className="text-sm whitespace-pre-line">{message.text}</p>
+            <p className={`text-xs mt-1 ${
+              isUser ? 'text-blue-100' : 'text-gray-500'
+            }`}>
+              {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </p>
+          </div>
+          
+          {/* Render inline keyboard */}
+          {message.replyMarkup && !isUser && (
+            <div className="bg-white border border-gray-200 rounded-lg p-2 space-y-1">
+              {message.replyMarkup.inline_keyboard.map((row: any[], rowIndex: number) => (
+                <div key={rowIndex} className="flex gap-1 flex-wrap">
+                  {row.map((button, buttonIndex) => (
+                    <button
+                      key={buttonIndex}
+                      onClick={() => processCommand(button.callback_data || button.text)}
+                      className="px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 text-sm rounded-md transition-colors border border-blue-200"
+                    >
+                      {button.text}
+                    </button>
+                  ))}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        
+        {isUser && (
+          <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
+            <User className="w-4 h-4 text-gray-600" />
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <Card className="h-[600px] flex flex-col">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2">
+          <Settings className="w-5 h-5" />
+          AI Quiz Bot
+          <span className="ml-auto text-sm font-normal text-green-600">● Online</span>
+        </CardTitle>
+      </CardHeader>
+      
+      <CardContent className="flex-1 flex flex-col p-0">
+        {/* Messages Area */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+          {messages.map(renderMessage)}
+          
+          {isTyping && (
+            <div className="flex gap-2 justify-start">
+              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                <Settings className="w-4 h-4 text-blue-600" />
+              </div>
+              <div className="bg-gray-100 rounded-2xl px-4 py-2">
+                <div className="flex gap-1">
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                </div>
+              </div>
+            </div>
+          )}
+          
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Media Toolbar */}
+        <div className="border-t border-gray-200 px-4 py-2">
+          <div className="flex gap-2 mb-2">
+            <button
+              onClick={() => handleMediaClick('photo')}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              title="Send Photo"
+            >
+              <Upload className="w-4 h-4 text-gray-600" />
+            </button>
+            <button
+              onClick={() => handleMediaClick('document')}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              title="Send Document"
+            >
+              <Download className="w-4 h-4 text-gray-600" />
+            </button>
+            <button
+              onClick={() => handleMediaClick('audio')}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              title="Send Audio"
+            >
+              <Star className="w-4 h-4 text-gray-600" />
+            </button>
+            <button
+              onClick={() => handleMediaClick('video')}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              title="Send Video"
+            >
+              <Upload className="w-4 h-4 text-gray-600" />
+            </button>
+            <button
+              onClick={() => handleMediaClick('animation')}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              title="Send GIF"
+            >
+              <Star className="w-4 h-4 text-gray-600" />
+            </button>
+            <button
+              onClick={() => handleMediaClick('voice')}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              title="Send Voice"
+            >
+              <Bell className="w-4 h-4 text-gray-600" />
+            </button>
+          </div>
+        </div>
+
+        {/* Input Area */}
+        <div className="border-t border-gray-200 p-4">
+          <div className="flex gap-2">
+            <Input
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Type a message or emoji... 😊"
+              className="flex-1"
+            />
+            <Button onClick={handleSendMessage} size="icon">
+              <ArrowRight className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}

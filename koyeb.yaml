@@ -8,6 +8,8 @@ services:
   env:
   - key: BOT_TOKEN
     value: "{{ .BOT_TOKEN }}"
+  - key: TELEGRAM_WEBHOOK_SECRET
+    value: "{{ .TELEGRAM_WEBHOOK_SECRET }}"
   ports:
   - port: 3000
     protocol: http
